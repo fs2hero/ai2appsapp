@@ -1,0 +1,5 @@
+/bundle/
+/bundle_data/
+node_modules
+out
+package-lock.json
