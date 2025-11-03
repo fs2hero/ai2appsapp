@@ -1,3 +1,5 @@
+import os from 'node:os';
+import path from 'path';
 import { isMac, isLinux, isArm } from '../utils/sys_utils.mjs';
 
 // const isMac = () => process.platform === 'darwin';
@@ -28,4 +30,14 @@ export async function install({ run, onLog } = {}) {
   }
 }
 
-export default { check, install };
+export async function detectCondaBase(run) {
+  const info = await run('command -v conda >/dev/null 2>&1 && conda info --base');
+  if (!info.ok || !info.out) {
+    const guess = path.join(os.homedir(), 'miniconda3');
+    return { baseDir: guess, python: path.join(guess, 'bin', 'python'), pip: path.join(guess, 'bin', 'pip') };
+  }
+  const baseDir = info.out.split(/\r?\n/).pop().trim();
+  return { baseDir, python: path.join(baseDir, 'bin', 'python'), pip: path.join(baseDir, 'bin', 'pip') };
+}
+
+export default { check, install, detectCondaBase };

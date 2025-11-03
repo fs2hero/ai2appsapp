@@ -3,10 +3,13 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 
-function log(...args){ console.log('[fix-electron-macos]', ...args); }
+function log(...args){ console.log('[fix-electron-module]', ...args); }
 
-const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+console.log(`import.meta.url:`,import.meta.url);
+
+const root = path.resolve(path.dirname(new URL(import.meta.url).pathname));
 const electronDir = path.join(root, 'node_modules', 'electron');
+console.log('electronDir:',electronDir)
 const distPath = path.join(electronDir, 'dist');
 
 try {

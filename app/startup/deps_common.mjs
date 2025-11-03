@@ -42,16 +42,6 @@ export const TOOLS_NAME = {
 const isMac = () => process.platform === 'darwin';
 const isLinux = () => process.platform === 'linux';
 
-async function detectCondaBase() {
-  const info = await run('command -v conda >/dev/null 2>&1 && conda info --base');
-  if (!info.ok || !info.out) {
-    const guess = path.join(os.homedir(), 'miniconda3');
-    return { baseDir: guess, python: path.join(guess, 'bin', 'python'), pip: path.join(guess, 'bin', 'pip') };
-  }
-  const baseDir = info.out.split(/\r?\n/).pop().trim();
-  return { baseDir, python: path.join(baseDir, 'bin', 'python'), pip: path.join(baseDir, 'bin', 'pip') };
-}
-
 export async function checkDeps() {
   const items = [];
 
@@ -119,7 +109,7 @@ export async function checkDeps() {
   if (xOk) {
     const hasConda = (await run('command -v conda')).ok;
     if (hasConda) {
-      const binfo = await detectCondaBase();
+      const binfo = await condaEnv.detectCondaBase(run);
       const pyVer = await run(`${binfo.python} --version 2>&1`);
       const pipVer = await run(`${binfo.pip} --version 2>&1`);
       if (pyVer.ok && pipVer.ok) {
