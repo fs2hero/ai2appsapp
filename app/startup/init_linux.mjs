@@ -7,6 +7,19 @@
 import { checkDeps as commonCheckDeps, installDeps as commonInstallDeps } from './deps_common.mjs';
 
 
+const sh = (cmd, env = {}) =>
+  promisify(execFile)('/bin/bash', ['-lc', cmd], { timeout: 90_000, env: { ...process.env, ...env } });
+
+export const run = async (cmd) => {
+    try {
+        const { stdout } = await sh(cmd);
+        return { ok: true, out: (stdout || "").trim() };
+    }catch (e){
+        return { ok: false, out: (e.stdout || e.stderr || "").toString().trim(), code: e.code ?? -1 };
+    }
+};
+
+
 // const brewPrefix = isArm ? "/opt/homebrew" : "/usr/local";
 // const brewBin    = `${brewPrefix}/bin/brew`;
 

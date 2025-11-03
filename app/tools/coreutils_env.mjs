@@ -4,7 +4,8 @@ import { isMac, isLinux } from '../utils/sys_utils.mjs';
 // const isLinux = () => process.platform === 'linux';
 
 export async function check(run) {
-  const gr = await run('command -v greadlink && greadlink --version');
+  const cmd = isMac() ? 'command -v greadlink && greadlink --version' : 'command -v readlink && readlink --version';
+  const gr = await run(cmd);
   return { ok: gr.ok, version: gr.ok ? (gr.out || '').split('\n')[0] : '', fix: [isMac() ? 'brew install coreutils' : 'apt install -y coreutils'] };
 }
 

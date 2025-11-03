@@ -15,7 +15,7 @@ export async function install({ run, onLog } = {}) {
     await run('eval "$(/opt/homebrew/bin/brew shellenv)" || true');
     log('Homebrew: 安装完成（macOS）');
   } else if (isLinux()) {
-    await run('sh -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"');
+    await run('NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"');
     log('Homebrew: 安装完成（Linux）');
   } else {
     log('Homebrew: 平台不支持安装');

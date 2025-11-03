@@ -7,6 +7,7 @@ import path from'path';
 import { fileURLToPath } from 'url'
 import yauzl from 'yauzl';
 import {checkNetFast} from './check_network.mjs';
+import { isLinux, isMac } from '../utils/sys_utils.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = pathLib.dirname(__filename);
@@ -606,11 +607,14 @@ startupWindow.startApp=async function(){
 		//Install system dependence:
 		{
 			let initFile,depVo;
-			if(process.platform === "darwin") {//MacOS:
+			if(isMac()) {//MacOS:
 				initFile = await import("./init_macos.mjs");
 				depVo=await runDepsWizard(initFile.checkDeps,initFile.installDeps,win);
+			}else if(isLinux()) {//Linux:
+				initFile = await import("./init_linux.mjs");
+				depVo=await runDepsWizard(initFile.checkDeps,initFile.installDeps,win);
 			}else{
-				//TODO: Add windows and linux support:
+				//TODO: Add windows support:
 			}
 			if(depVo) {
 				if (this.serverJson) {//Not first time:

@@ -511,4 +511,4 @@ function startServerAndThenWindow() {
 }
 
 console.log('electron start')
-app.whenReady().then(startServerAndThenWindow).catch(err => console.error('start exception'));
+app.whenReady().then(startServerAndThenWindow);

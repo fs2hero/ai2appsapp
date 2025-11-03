@@ -8,6 +8,9 @@ import { checkDeps as commonCheckDeps, installDeps as commonInstallDeps, TOOLS_N
 
 /* the original long checkDeps body was removed in favor of delegating to deps_common.checkDeps */
 
+const sh = (cmd, env = {}) =>
+  promisify(execFile)('/bin/bash', ['-lc', cmd], { timeout: 90_000, env: { ...process.env, ...env } });
+
 export const run = async (cmd) => {
     try {
         const { stdout } = await sh(cmd);

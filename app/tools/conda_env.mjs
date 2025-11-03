@@ -1,4 +1,4 @@
-import { isMac, isLinux } from '../utils/sys_utils.mjs';
+import { isMac, isLinux, isArm } from '../utils/sys_utils.mjs';
 
 // const isMac = () => process.platform === 'darwin';
 // const isLinux = () => process.platform === 'linux';
@@ -16,9 +16,11 @@ export async function install({ run, onLog } = {}) {
     await run(`echo 'export PATH="$HOME/miniconda3/bin:$PATH"' >> ~/.zshrc`).catch(()=>{});
     log('conda: 安装完成（macOS）');
   } else if (isLinux()) {
-    const inst = 'Miniconda3-latest-Linux-x86_64.sh';
+    const inst = isArm ? 'Miniconda3-latest-Linux-aarch64.sh' : 'Miniconda3-latest-Linux-x86_64.sh';
     await run(`curl -fsSL https://repo.anaconda.com/miniconda/${inst} -o /tmp/${inst}`);
-    await run(`bash /tmp/${inst} -b -p $HOME/miniconda3`);
+    const perm = `/bin/chmod 777 "/tmp/${inst}"`;
+    await run(perm)
+    await run(`/bin/bash /tmp/${inst} -u -b -p $HOME/miniconda3`);
     await run(`echo 'export PATH="$HOME/miniconda3/bin:$PATH"' >> ~/.bashrc`).catch(()=>{});
     log('conda: 安装完成（Linux）');
   } else {

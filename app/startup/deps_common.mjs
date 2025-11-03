@@ -8,6 +8,7 @@ import * as condaEnv from '../tools/conda_env.mjs';
 import * as coreutilsEnv from '../tools/coreutils_env.mjs';
 import * as nvmEnv from '../tools/nvm_env.mjs';
 import * as xcodeCtl from '../tools/xcode_ctl.mjs';
+import * as curlEnv from '../tools/curl_env.mjs';
 
 const sh = (cmd, env = {}) =>
   promisify(execFile)('/bin/bash', ['-lc', cmd], { timeout: 90_000, env: { ...process.env, ...env } });
@@ -35,6 +36,7 @@ export const TOOLS_NAME = {
   TIMEOUT: 'timeout',
   NVM: 'nvm',
   NODE22: 'node22',
+  CURL: 'curl',
 };
 
 const isMac = () => process.platform === 'darwin';
@@ -57,6 +59,14 @@ export async function checkDeps() {
   if (isMac()) {
     const x = await run('xcode-select -p');
     items.push({ key: TOOLS_NAME.XCODE, label: 'Xcode Command Line Tools', ok: x.ok, version: x.ok ? x.out : '', fix: ['xcode-select --install'], note: '若异常：sudo xcode-select --reset' });
+  }
+
+  // curl
+  try {
+    const cr = await curlEnv.check(run);
+    items.push({ key: TOOLS_NAME.CURL, label: 'curl', ok: cr.ok, version: cr.version || '', fix: cr.fix || [] });
+  } catch (e) {
+    items.push({ key: TOOLS_NAME.CURL, label: 'curl', ok: false, version: '', fix: [] });
   }
 
   // Homebrew
@@ -140,6 +150,12 @@ export async function installDeps(selected = [], { onLog, modifyRc = true, allow
   // Xcode (mac)
   if (have(TOOLS_NAME.XCODE) && isMac()) {
     await xcodeCtl.install({ run, onLog });
+  }
+
+  // curl
+  if (have(TOOLS_NAME.CURL)) {
+    const present = (await run('command -v curl')).ok;
+    if (!present) await curlEnv.install({ run, onLog });
   }
 
   // Brew
