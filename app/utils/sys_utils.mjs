@@ -1,9 +1,9 @@
-import{ dialog,screen } from "electron";
+// import{ dialog,screen } from "electron";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import os from "node:os";
-import path from "path";
-import fs from "node:fs/promises";
+// import os from "node:os";
+// import path from "path";
+// import fs from "node:fs/promises";
 
 const execFileP = promisify(execFile);
 

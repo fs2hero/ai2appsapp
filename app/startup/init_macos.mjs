@@ -8,6 +8,15 @@ import { checkDeps as commonCheckDeps, installDeps as commonInstallDeps, TOOLS_N
 
 /* the original long checkDeps body was removed in favor of delegating to deps_common.checkDeps */
 
+export const run = async (cmd) => {
+    try {
+        const { stdout } = await sh(cmd);
+        return { ok: true, out: (stdout || "").trim() };
+    }catch (e){
+        return { ok: false, out: (e.stdout || e.stderr || "").toString().trim(), code: e.code ?? -1 };
+    }
+};
+
 /**
  * 检查依赖（委托到通用实现）
  * 传参与 `deps_common.checkDeps` 保持一致：可选 onLog 回调等

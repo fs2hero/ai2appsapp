@@ -377,6 +377,7 @@ function restartApp() {
 
 //---------------------------------------------------------------------------
 function startServerAndThenWindow() {
+	console.log('startServerAndThenWindow')
 	app.on('browser-window-focus', (event, window) => {
 		lastActiveWindow = window;
 	});
@@ -487,6 +488,7 @@ function startServerAndThenWindow() {
 			//"subdomain":`useraa00${userId}`
 		});
 
+		console.log('spawn frpc')
 		frpcRuntime= spawn(path.join(frpcPath,platform==="win32"?"frpc.exe":"frpc"), ['-c', cfgPath], {
 			cwd: frpcPath,
 			stdio: 'inherit'
@@ -508,4 +510,5 @@ function startServerAndThenWindow() {
 	});
 }
 
-app.whenReady().then(startServerAndThenWindow);
+console.log('electron start')
+app.whenReady().then(startServerAndThenWindow).catch(err => console.error('start exception'));

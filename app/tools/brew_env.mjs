@@ -1,4 +1,4 @@
-import {isMac, isLinux} from '../utils/sys_utils.mjs';
+import { isMac, isLinux } from '../utils/sys_utils.mjs';
 
 // const isMac = () => process.platform === 'darwin';
 // const isLinux = () => process.platform === 'linux';

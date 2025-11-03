@@ -5,7 +5,8 @@
   "main": "main.mjs",
   "scripts": {
     "start": "electron-forge start",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node ./tools/run_tests.mjs",
+    "start:fix": "node ./fix_electron_module.mjs && electron-forge start",
     "package": "electron-forge package",
     "make": "electron-forge make",
     "bundle": "node make_bundle.mjs",
@@ -22,7 +23,7 @@
     "@electron-forge/plugin-auto-unpack-natives": "^7.10.2",
     "@electron-forge/plugin-fuses": "^7.10.2",
     "@electron/fuses": "^1.8.0",
-    "electron": "^36.3.1"
+    "electron": "^36.9.5"
   },
   "dependencies": {
     "@electron/notarize": "^3.0.1",

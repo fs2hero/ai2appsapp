@@ -97,6 +97,7 @@ export async function checkDeps() {
   }
 
   // Node 22 via nvm
+  const nvmSrc = `export NVM_DIR="$HOME/.nvm"; [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"`;
   const n22 = await run(`${nvmSrc}; nvm ls --no-colors | grep -E '\\bv?22(\\.|\\s|$)' || true`);
   const node22Ok = !!n22.out;
   const nodeV = await run('node -v');
