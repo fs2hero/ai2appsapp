@@ -7,7 +7,8 @@ import path from'path';
 import { fileURLToPath } from 'url'
 import yauzl from 'yauzl';
 import {checkNetFast} from './check_network.mjs';
-import { isLinux, isMac } from '../utils/sys_utils.mjs';
+import { isLinux, isMac, isWin, copyFileToDir, copyDirWithReplace, ensureDirSync, isArm } from '../utils/sys_utils.mjs';
+import { sleep } from '../utils/helper.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = pathLib.dirname(__filename);
@@ -19,19 +20,6 @@ let fsp=fs.promises;
 
 let setStartupState=null;
 
-
-const NVM_DIR = path.join(process.env.HOME, '.nvm');
-
-//---------------------------------------------------------------------------
-async function sleep(time){
-	return new Promise(resolve => setTimeout(resolve, time));
-}
-
-//---------------------------------------------------------------------------
-function ensureDirSync(dirPath) {
-	if (fs.existsSync(dirPath)) return;
-	fs.mkdirSync(dirPath, { recursive: true });
-}
 
 //---------------------------------------------------------------------------
 function unzip(zipPath, targetDir) {
@@ -65,58 +53,8 @@ function unzip(zipPath, targetDir) {
 }
 
 //---------------------------------------------------------------------------
-async function copyFileToDir(srcFile, targetDir,targetName) {
-	const fileName = path.basename(srcFile);
-	const destPath = path.join(targetDir, targetName||fileName);
-	await fsp.mkdir(targetDir, { recursive: true }); // 确保目录存在
-	await fsp.copyFile(srcFile, destPath);
-}
-
-//---------------------------------------------------------------------------
-async function copyDirWithReplace(srcDir, destDir) {
-	await fsp.mkdir(destDir, { recursive: true });
-	const entries = await fsp.readdir(srcDir, { withFileTypes: true });
-	
-	for (const entry of entries) {
-		const srcPath = path.join(srcDir, entry.name);
-		const destPath = path.join(destDir, entry.name);
-		
-		if (entry.isDirectory()) {
-			// 如果目标目录中已存在该子目录，先删除
-			try {
-				await fsp.rm(destPath, { recursive: true, force: true });
-			} catch (e) {} // 忽略不存在等错误
-			
-			await copyDirWithReplace(srcPath, destPath);
-		} else if (entry.isFile()) {
-			await fsp.copyFile(srcPath, destPath);
-		}
-	}
-}
-
-//---------------------------------------------------------------------------
-async function linkDir(srcDir, dstDir) {
-	try {
-		await fsp.mkdir(path.dirname(dstDir), { recursive: true });
-		await fsp.symlink(srcDir, dstDir, 'dir');
-		console.log(`链接创建成功: ${dstDir} -> ${srcDir}`);
-	} catch (err) {
-		console.error(`创建符号链接失败: ${err.message}`);
-	}
-}
-//---------------------------------------------------------------------------
 async function removeDirOrFile(targetPath) {
 	await fsp.rm(targetPath, { recursive: true, force: true });
-}
-
-//---------------------------------------------------------------------------
-function run(cmd, options = {}) {
-	return new Promise((resolve, reject) => {
-		exec(cmd, options, (err, stdout, stderr) => {
-			if (err) return reject(stderr || err);
-			resolve(stdout);
-		});
-	});
 }
 
 //---------------------------------------------------------------------------
@@ -173,16 +111,6 @@ function runBashScript(script,cwd) {
 		child.stdin.write(script + '\n');
 		child.stdin.end();
 	});
-}
-
-//---------------------------------------------------------------------------
-async function checkNvm(){
-	return fs.existsSync(path.join(NVM_DIR, 'nvm.sh'));
-}
-
-//---------------------------------------------------------------------------
-async function installNvm(){
-	await run(`curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash`);
 }
 
 //---------------------------------------------------------------------------
@@ -382,7 +310,8 @@ const LABELS = {
 	coreutils: "coreutils",
 	timeout: "timeout",
 	nvm: "nvm",
-	node22: "Node.js 22 (via nvm)"
+	node22: "Node.js 22 (via nvm)",
+	curl: 'curl',
 };
 
 //---------------------------------------------------------------------------
@@ -631,10 +560,14 @@ startupWindow.startApp=async function(){
 		
 		//Ensure system dirs:
 		{
-			await fsp.mkdir(this.userDataDir, { recursive: true });
-			await fsp.mkdir(path.join(this.userDataDir,"rpa_data_dir"), { recursive: true });
-			await fsp.mkdir(path.join(this.userDataDir,"filehub"), { recursive: true });
-			await fsp.mkdir(path.join(this.userDataDir,"server"), { recursive: true });
+			// await fsp.mkdir(this.userDataDir, { recursive: true });
+			// await fsp.mkdir(path.join(this.userDataDir,"rpa_data_dir"), { recursive: true });
+			// await fsp.mkdir(path.join(this.userDataDir,"filehub"), { recursive: true });
+			// await fsp.mkdir(path.join(this.userDataDir,"server"), { recursive: true });
+			ensureDirSync(this.userDataDir);
+			ensureDirSync(path.join(this.userDataDir,"rpa_data_dir"));
+			ensureDirSync(path.join(this.userDataDir,"filehub"));
+			ensureDirSync(path.join(this.userDataDir,"server"));
 		}
 		
 		//Nvm should already be installed
@@ -689,9 +622,22 @@ startupWindow.startApp=async function(){
 			
 			//Make frpc executable:
 			{
-				let platform=os.platform();
-				let frpcPath=path.join(this.serverDir,"frpc",platform==="win32"?"frpc.exe":"frpc");
-				if (platform !== 'win32') {
+				// let platform=os.platform();
+				let frpcName;
+				if(isWin()){
+					frpcName="frpc.exe";
+				}else if(isMac()){
+					frpcName="frpc.macos";
+				} else if(isLinux()){
+					if(isArm){
+						frpcName="frpc.arm64";
+					}else{
+						frpcName="frpc.x86";
+					}
+				}
+
+				let frpcPath=path.join(this.serverDir,"frpc",frpcName);
+				if (!isWin()) {
 					fs.chmodSync(frpcPath, 0o755); // macOS/Linux 设置可执行权限
 				}
 			}
@@ -783,9 +729,21 @@ startupWindow.startApp=async function(){
 				
 				//Make frpc executable:
 				{
-					let platform=os.platform();
-					let frpcPath=path.join(this.serverDir,"frpc",platform==="win32"?"frpc.exe":"frpc");
-					if (platform !== 'win32') {
+					// let platform=os.platform();
+					let frpcName;
+					if(isWin()){
+						frpcName="frpc.exe";
+					}else if(isMac()){
+						frpcName="frpc.macos";
+					} else if(isLinux()){
+						if(isArm){
+							frpcName="frpc.arm64";
+						}else{
+							frpcName="frpc.x86";
+						}
+					}
+					let frpcPath=path.join(this.serverDir,"frpc",frpcName);
+					if (!isWin()) {
 						fs.chmodSync(frpcPath, 0o755); // macOS/Linux 设置可执行权限
 					}
 				}
@@ -832,13 +790,13 @@ startupWindow.startApp=async function(){
 	
 	this.setStartupState("Starting local server...");
 	//Start the local AI2Apps server:
-	const cmd = `
-unset npm_config_prefix
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-nvm use 22
-node ${path.join(this.serverDir,"start.js")}
-`;
+// 	const cmd = `
+// unset npm_config_prefix
+// export NVM_DIR="$HOME/.nvm"
+// [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+// nvm use 22
+// node ${path.join(this.serverDir,"start.js")}
+// `;
 	//const child = spawn("bash", ['-c',cmd],{cwd:this.serverDir});
 	const child = spawn("node", [path.join(this.serverDir,"start.js")],{cwd:this.serverDir,env:process.env});
 	/*const child = spawn("zsh", ['-l','-c',`nvm use ${nodeVersion} && node ${path.join(this.serverDir,"start.js")}`],{

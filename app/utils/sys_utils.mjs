@@ -2,16 +2,64 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 // import os from "node:os";
-// import path from "path";
+import path from "path";
 // import fs from "node:fs/promises";
+import fs from 'fs';
 
 const execFileP = promisify(execFile);
+const fsp=fs.promises;
 
 // export const username = process.env.SUDO_USER || process.env.USER || "root";
 export const isArm = process.arch === "arm64";
 
 export const isMac = () => process.platform === 'darwin';
 export const isLinux = () => process.platform === 'linux';
+export const isWin = () => process.platform === 'win32';
+
+
+export function ensureDirSync(dirPath) {
+    if (fs.existsSync(dirPath)) return;
+    fs.mkdirSync(dirPath, { recursive: true });
+}
+
+export async function copyFileToDir(srcFile, targetDir,targetName) {
+    const fileName = path.basename(srcFile);
+    const destPath = path.join(targetDir, targetName||fileName);
+    await fsp.mkdir(targetDir, { recursive: true }); // 确保目录存在
+    await fsp.copyFile(srcFile, destPath);
+}
+
+//---------------------------------------------------------------------------
+export async function copyDirWithReplace(srcDir, destDir) {
+    await fsp.mkdir(destDir, { recursive: true });
+    const entries = await fsp.readdir(srcDir, { withFileTypes: true });
+    
+    for (const entry of entries) {
+        const srcPath = path.join(srcDir, entry.name);
+        const destPath = path.join(destDir, entry.name);
+        
+        if (entry.isDirectory()) {
+            // 如果目标目录中已存在该子目录，先删除
+            try {
+                await fsp.rm(destPath, { recursive: true, force: true });
+            } catch (e) {} // 忽略不存在等错误
+            
+            await copyDirWithReplace(srcPath, destPath);
+        } else if (entry.isFile()) {
+            await fsp.copyFile(srcPath, destPath);
+        }
+    }
+}
+
+export async function linkDir(srcDir, dstDir) {
+	try {
+		await fsp.mkdir(path.dirname(dstDir), { recursive: true });
+		await fsp.symlink(srcDir, dstDir, 'dir');
+		console.log(`链接创建成功: ${dstDir} -> ${srcDir}`);
+	} catch (err) {
+		console.error(`创建符号链接失败: ${err.message}`);
+	}
+}
 
 // const isMac = () => process.platform === "darwin";
 // const HOME = os.homedir();

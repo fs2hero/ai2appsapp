@@ -488,7 +488,7 @@ function startServerAndThenWindow() {
 			//"subdomain":`useraa00${userId}`
 		});
 
-		console.log('spawn frpc')
+		console.log('shadowDomain spawn frpc')
 		frpcRuntime= spawn(path.join(frpcPath,platform==="win32"?"frpc.exe":"frpc"), ['-c', cfgPath], {
 			cwd: frpcPath,
 			stdio: 'inherit'
