@@ -771,7 +771,19 @@ startupWindow.startApp=async function(){
 	let configJson=this.configJson||{env:{}};
 	serverPort=configJson.env["PORT"]||serverPort;
 	//Set web-drive app path:
-	configJson.env["WEBDRIVE_APP"]=path.join(this.bundleDir,"Acefox.app");
+	let acefoxName;
+	if(isWin()){
+		acefoxName="Acefox.exe";
+	}else if(isMac()){
+		acefoxName="Acefox.app";
+	} else if(isLinux()){
+		if(isArm){
+			acefoxName="Acefox.arm64";
+		}else{
+			acefoxName="Acefox.x86";
+		}
+	}
+	configJson.env["WEBDRIVE_APP"]=path.join(this.bundleDir,acefoxName);
 	await updateEnvFile(path.join(this.serverDir,".env"),configJson.env);
 
 	this.setStartupState("Checking local server...");
