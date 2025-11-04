@@ -607,6 +607,7 @@ startupWindow.startApp=async function(){
 			throw `Can't find node path!`;
 		}
 		
+		console.log(`[Startup] ServerBuild: ${this.serverJson?.build}, BundleBuild: ${this.bundleJson.build}`);
 		if(!this.serverJson){//This is the first time we install AI2Apps
 			//Unzip server dir:
 			this.setStartupState("Unzip bundle files...");

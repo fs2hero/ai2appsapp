@@ -33,9 +33,6 @@ eBrowser=EBrowser.prototype={};
 			if(hasUpdate) {
 				this.navi.updateReady();
 			}
-
-			console.log("start shadowDomain: ");
-			window.tabApi.shadowDomain()
 		});
 	};
 	
