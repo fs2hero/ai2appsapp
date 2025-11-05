@@ -1,6 +1,6 @@
 {
   "name": "ai2apps",
-  "version": "0.1.88",
+  "version": "0.1.89",
   "description": "AI2Apps client for desktop",
   "main": "main.mjs",
   "scripts": {
@@ -9,7 +9,7 @@
     "start:fix": "node ./fix_electron_module.mjs && electron-forge start",
     "package": "electron-forge package",
     "make": "electron-forge make",
-    "bundle": "node make_bundle.mjs",
+    "bundle": "node make_bundle.mjs --sync",
     "yml": "node make-zip-yml.js"
   },
   "author": "avdpro@me.com",
@@ -23,7 +23,7 @@
     "@electron-forge/plugin-auto-unpack-natives": "^7.10.2",
     "@electron-forge/plugin-fuses": "^7.10.2",
     "@electron/fuses": "^1.8.0",
-    "electron": "^36.9.5"
+    "electron": "^39.1.0"
   },
   "dependencies": {
     "@electron/notarize": "^3.0.1",

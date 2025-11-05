@@ -6,7 +6,7 @@ module.exports = {
     asar: true,
     extraResource:[
         '../bundle'
-    ]
+    ],
   },
   rebuildConfig: {},
   makers: [

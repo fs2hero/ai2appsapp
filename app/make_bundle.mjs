@@ -133,6 +133,11 @@ function main() {
 	const sync = args.includes('--sync');
 	if(sync){
 		console.log('Start copy to bundle_data')
+		if(!fs.existsSync(AI2APPS_ROOT)) {
+			console.error(`${AI2APPS_ROOT} 不存在，请设置正确的项目路径`)
+
+			return;
+		}
 		copyDirSync(
 			AI2APPS_ROOT,
 			path.join(__dirname, '../bundle_data')
