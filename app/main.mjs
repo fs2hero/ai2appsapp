@@ -1,4 +1,4 @@
-import{ app, BrowserWindow,nativeImage,Tray,screen,Menu,ipcMain,shell } from "electron";
+import{ app, BrowserWindow,nativeImage,Tray,Menu,ipcMain,shell } from "electron";
 import { spawn } from 'child_process';
 import { fileURLToPath } from "url";
 import pathLib from "path";
@@ -18,12 +18,12 @@ let mainWindow=null;
 console.log(process.env.PATH);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = pathLib.dirname(fileURLToPath(import.meta.url));
-const isPackaged = app.isPackaged;
-const basePath = isPackaged ? pathLib.dirname(app.getPath('exe')) : __dirname;
+// const isPackaged = app.isPackaged;
+// const basePath = isPackaged ? pathLib.dirname(app.getPath('exe')) : __dirname;
 
-const serverDir = pathLib.join(app.getAppPath(), '../local');
-const nodeBin = pathLib.join(serverDir, 'node');
-const serverJs = pathLib.join(serverDir, 'start.js');
+// const serverDir = pathLib.join(app.getAppPath(), '../local');
+// const nodeBin = pathLib.join(serverDir, 'node');
+// const serverJs = pathLib.join(serverDir, 'start.js');
 
 const iconPath = pathLib.join(__dirname, 'icon/icon.png'); // 支持 png、icns
 const trayIconPath = pathLib.join(__dirname, 'icon/iconTemplate@4x.png'); // 支持 png、icns

@@ -1,5 +1,5 @@
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
+// import { execFile } from 'node:child_process';
+// import { promisify } from 'node:util';
 import os from 'node:os';
 import path from 'path';
 import fs from 'node:fs/promises';
@@ -9,18 +9,38 @@ import * as coreutilsEnv from '../tools/coreutils_env.mjs';
 import * as nvmEnv from '../tools/nvm_env.mjs';
 import * as xcodeCtl from '../tools/xcode_ctl.mjs';
 import * as curlEnv from '../tools/curl_env.mjs';
+import { run, isMac } from '../utils/sys_utils.mjs';
 
-const sh = (cmd, env = {}) =>
-  promisify(execFile)('/bin/bash', ['-lc', cmd], { timeout: 90_000, env: { ...process.env, ...env } });
+// Wrapped execFile that logs command, timing and truncated stdout/stderr for easier debugging.
+// const sh = async (cmd, env = {}) => {
+//   const start = Date.now();
+//   // Log command (single-line) and a small env summary (don't print secrets)
+//   try {
+//     console.log(`[sh] RUN -> ${cmd.replace(/\n/g, ' ')} `);
+//     console.log(`[sh] ENV PATH=${(process.env.PATH || '').slice(0, 200)}${(process.env.PATH || '').length > 200 ? '...' : ''}`);
+//     const { stdout, stderr } = await promisify(execFile)('/bin/bash', ['-lc', cmd], { timeout: 90_000, env: { ...process.env, ...env } });
+//     const took = Date.now() - start;
+//     const sOut = (stdout || '').toString();
+//     const sErr = (stderr || '').toString();
+//     console.log(`[sh] OK  <- ${cmd.split('\n')[0].slice(0,80)}... (${took}ms) stdout=${sOut.slice(0,1000)}${sOut.length>1000?"...":""}`);
+//     if (sErr) console.log(`[sh] STDERR: ${sErr.slice(0,1000)}${sErr.length>1000?"...":""}`);
+//     return { stdout, stderr };
+//   } catch (e) {
+//     const took = Date.now() - start;
+//     const errOut = (e.stdout || e.stderr || '') .toString();
+//     console.error(`[sh] ERR  <- ${cmd.split('\n')[0].slice(0,80)}... (${took}ms) code=${e.code ?? 'N/A'} output=${errOut.slice(0,1000)}${errOut.length>1000?"...":""}`);
+//     throw e;
+//   }
+// };
 
-const run = async (cmd) => {
-  try {
-    const { stdout } = await sh(cmd);
-    return { ok: true, out: (stdout || '').trim() };
-  } catch (e) {
-    return { ok: false, out: (e.stdout || e.stderr || '').toString().trim(), code: e.code ?? -1 };
-  }
-};
+// const run = async (cmd) => {
+//   try {
+//     const { stdout } = await sh(cmd);
+//     return { ok: true, out: (stdout || '').trim() };
+//   } catch (e) {
+//     return { ok: false, out: (e.stdout || e.stderr || '').toString().trim(), code: e.code ?? -1 };
+//   }
+// };
 
 const nvmRcLines = () => [
   `export NVM_DIR="$HOME/.nvm"`,
@@ -39,8 +59,8 @@ export const TOOLS_NAME = {
   CURL: 'curl',
 };
 
-const isMac = () => process.platform === 'darwin';
-const isLinux = () => process.platform === 'linux';
+// const isMac = () => process.platform === 'darwin';
+// const isLinux = () => process.platform === 'linux';
 
 export async function checkDeps() {
   const items = [];
